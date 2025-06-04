@@ -1,0 +1,17 @@
+package com.example.ecommerceproductcatalog.repository; 
+import com.example.ecommerceproductcatalog.model.Product; 
+import org.springframework.data.jpa.repository.JpaRepository; 
+import org.springframework.stereotype.Repository; 
+import java.util.List; 
+@Repository 
+public interface ProductRepository extends JpaRepository<Product, Long> { 
+    // Custom method to find products by category 
+    List<Product> findByCategory(String category); 
+    // Custom method to find products within a price range 
+    List<Product> findByPriceBetween(Double minPrice, Double maxPrice); 
+    // Custom method to search products by name (partial match, case-insensitive) 
+    List<Product> findByNameContainingIgnoreCase(String name); 
+    // You can combine criteria, e.g., find by category and price range 
+    List<Product> findByCategoryAndPriceBetween(String category, Double minPrice, 
+Double maxPrice); 
+}
