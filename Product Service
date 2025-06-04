@@ -1,0 +1,63 @@
+package com.example.ecommerceproductcatalog.service; 
+import com.example.ecommerceproductcatalog.model.Product; 
+import com.example.ecommerceproductcatalog.repository.ProductRepository; 
+import org.springframework.beans.factory.annotation.Autowired; 
+import org.springframework.stereotype.Service; 
+import java.util.List; 
+import java.util.Optional; 
+@Service 
+public class ProductService { 
+    @Autowired 
+    private ProductRepository productRepository; 
+    // CRUD Operations 
+    public List<Product> getAllProducts() { 
+        return productRepository.findAll(); 
+    } 
+    public Optional<Product> getProductById(Long id) { 
+        return productRepository.findById(id); 
+    } 
+    public Product createProduct(Product product) { 
+        return productRepository.save(product); 
+    } 
+    public Product updateProduct(Long id, Product productDetails) { 
+        return productRepository.findById(id).map(product -> {     
+product.setName(productDetails.getName());  
+product.setDescription(productDetails.getDescription());    
+product.setPrice(productDetails.getPrice());      
+product.setCategory(productDetails.getCategory());       
+product.setStockQuantity(productDetails.getStockQuantity()); 
+            return productRepository.save(product); 
+        }).orElseThrow(() -> new RuntimeException("Product not found with id " + id)); // Or 
+custom exception 
+    } 
+    public void deleteProduct(Long id) { 
+        if (!productRepository.existsById(id)) { 
+            throw new RuntimeException("Product not found with id " + id); // Or custom 
+exception 
+        } 
+        productRepository.deleteById(id); 
+    } 
+    // Filtering and Searching Operations 
+    public List<Product> getProductsByCategory(String category) { 
+        return productRepository.findByCategory(category); 
+    } 
+    public List<Product> getProductsByPriceRange(Double minPrice, Double Double 
+maxPrice) { 
+        if (minPrice == null && maxPrice == null) { 
+            return getAllProducts(); // Or throw an error, depending on desired behavior 
+        } 
+        if (minPrice == null) minPrice = 0.0; 
+        if (maxPrice == null) maxPrice = Double.MAX_VALUE; 
+        return productRepository.findByPriceBetween(minPrice, maxPrice); 
+    } 
+    public List<Product> searchProductsByName(String name) { 
+        return productRepository.findByNameContainingIgnoreCase(name); 
+    } 
+    public List<Product> getProductsByCategoryAndPriceRange(String category, Double 
+minPrice, Double maxPrice) { 
+        if (minPrice == null) minPrice = 0.0; 
+        if (maxPrice == null) maxPrice = Double.MAX_VALUE; 
+        return productRepository.findByCategoryAndPriceBetween(category, minPrice, 
+maxPrice); 
+    } 
+}
