@@ -1,0 +1,59 @@
+package com.example.ecommerceproductcatalog.security; 
+import org.springframework.context.annotation.Bean; 
+import org.springframework.context.annotation.Configuration; 
+import org.springframework.http.HttpMethod; 
+import org.springframework.security.config.annotation.web.builders.HttpSecurity; 
+import 
+org.springframework.security.config.annotation.web.configuration.EnableWebSecurity; 
+import org.springframework.security.config.http.SessionCreationPolicy; 
+import org.springframework.security.core.userdetails.User; 
+import org.springframework.security.core.userdetails.UserDetails; 
+import org.springframework.security.core.userdetails.UserDetailsService; 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; 
+import org.springframework.security.crypto.password.PasswordEncoder; 
+import org.springframework.security.provisioning.InMemoryUserDetailsManager; 
+import org.springframework.security.web.SecurityFilterChain; 
+@Configuration 
+@EnableWebSecurity 
+public class SecurityConfig { 
+    @Bean 
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception { 
+        http 
+            .csrf(csrf -> csrf.disable()) // Disable CSRF for stateless REST API 
+          .authorizeHttpRequests(authorize -> authorize 
+                // Public access for viewing products (GET requests) 
+        .requestMatchers(HttpMethod.GET, "/api/products/").permitAll() 
+                // Admin role required for creating, updating, deleting products 
+       .requestMatchers(HttpMethod.POST, "/api/products").hasRole("ADMIN") 
+        .requestMatchers(HttpMethod.PUT, "/api/products/").hasRole("ADMIN") 
+    .requestMatchers(HttpMethod.DELETE, "/api/products/").hasRole("ADMIN") 
+                // Any other request requires authentication 
+             .anyRequest().authenticated() 
+            ) 
+.httpBasic(org.springframework.security.config.Customizer.withDefaults()) // Use HTTP 
+Basic authentication 
+            .sessionManagement(session -> 
+session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)); // Stateless API 
+        return http.build(); 
+    } 
+    @Bean 
+    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) { 
+        // In-memory users for demonstration. 
+        // For a real application, you would use a database (e.g., Spring Data JPA for 
+UserDetails). 
+        UserDetails admin = User.builder() 
+            .username("admin") 
+.password(passwordEncoder.encode("adminpass")) // Encode passwords 
+            .roles("ADMIN") 
+            .build(); 
+        UserDetails user = User.builder() 
+            .username("user") .password(passwordEncoder.encode("userpass")) 
+            .roles("USER") 
+            .build(); 
+        return new InMemoryUserDetailsManager(admin, user); 
+    } 
+    @Bean 
+    public PasswordEncoder passwordEncoder() { 
+        return new BCryptPasswordEncoder(); // Use BCrypt for password hashing 
+    } 
+}
